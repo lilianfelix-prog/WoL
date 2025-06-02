@@ -21,5 +21,5 @@ typedef struct
 
 int packetMaker(mac_addr_t *mac, packet_t *packet);
 
-int parseMacAddr(char *macInput, mac_addr_t *mac);
+int parseMacAddr(unsigned char *macInput, mac_addr_t *mac);
 
