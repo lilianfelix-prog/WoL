@@ -5,6 +5,8 @@
 
 #define WOL_PAYLOAD_SIZE 6*16
 
+#define PORT 2115
+
 typedef struct
 {
     unsigned char mac_addr[MAC_ADDR_SIZE];
@@ -19,7 +21,7 @@ typedef struct
 
 } packet_t;
 
+
 int packetMaker(mac_addr_t *mac, packet_t *packet);
 
 int parseMacAddr(unsigned char *macInput, mac_addr_t *mac);
-
