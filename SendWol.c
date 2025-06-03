@@ -91,8 +91,9 @@ int main(int argc, char *argv[])
         printf("%02X ", ((unsigned char *) packet)[i]);
     }
 
+    sockd = socket(AF_INET, SOCK_DGRAM, 0);
     //Initialize the socket for UDP accepting IPv4 adresses
-    if(sockd = socket(AF_INET, SOCK_DGRAM, 0) < 0){
+    if(sockd < 0){
         printf("\n failure creating socket descriptor \n");
         return -1;
     }
@@ -104,9 +105,9 @@ int main(int argc, char *argv[])
     }
 
     //Send the Magic packet to the connection, waiting for response
-    sendto(sockd, &packet, sizeof(packet), 0, (struct sockaddr*) &toaddr, sizeof(toaddr));
+    sendto(sockd, packet, sizeof(packet_t), 0, (struct sockaddr*) NULL, sizeof(toaddr));
 
-    recvfrom(sockd, buffer, sizeof(buffer), 0, (struct sockaddr*) &toaddr, NULL);
+    recvfrom(sockd, buffer, sizeof(buffer), 0, (struct sockaddr*) NULL, NULL);
     puts(buffer);
 
     close(sockd);
