@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <strings.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "wol.h"
-#define PORT 2115
 #define MAXLINE 1000
 
 int main()
@@ -18,7 +19,7 @@ int main()
 
     listenfd = socket(AF_INET, SOCK_DGRAM, 0);        
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(PORT);
+    servaddr.sin_port = htons(WOL_PORT);
     servaddr.sin_family = AF_INET; 
  
     bind(listenfd, (struct sockaddr*)&servaddr, sizeof(servaddr));
@@ -33,4 +34,8 @@ int main()
 
     sendto(listenfd, message, MAXLINE, 0,
           (struct sockaddr*)&cliaddr, sizeof(cliaddr));
+
+    close(listenfd);
+    
+    return 0;
 }

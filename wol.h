@@ -5,7 +5,8 @@
 
 #define WOL_PAYLOAD_SIZE 6*16
 
-#define PORT 2115
+#define PORT 8080
+#define WOL_PORT 8090
 
 typedef struct
 {

@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     // initialize socket information: IP/port of receiving socket
     bzero(&toaddr, sizeof(toaddr));
     toaddr.sin_family = AF_INET;
-    toaddr.sin_port = htons(PORT);
+    toaddr.sin_port = htons(WOL_PORT);
     toaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
     //if(inet_pton(AF_INET, "127.0.0.1", &toaddr.sin_addr.s_addr) < 0){
     //    printf("\n Invalid IP Address \n");
