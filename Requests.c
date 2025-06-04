@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "wol.h"
-#define MAXLINE 1000
+
 
 int main()
 {   
@@ -47,7 +47,7 @@ int main()
 
     new_sock = accept(listen_sock, (struct sockaddr*) &cliaddr, &len);
     
-    send(new_sock, msg1, sizeof(msg1), 0);
+    send(new_sock, msg1, strlen(msg1), 0);
     
     int n = recv(new_sock, buffer, sizeof(buffer)-1, 0);
     if (n <= 0) {
