@@ -1,5 +1,5 @@
 ## Simple project to learn about socket programming in c.
-  
+![Alt text](./wol_diagram.png?raw=true "diagram")  
 ## How WoL Works
 Target computer must be configured to accept WoL packets
 Magic packet is sent over the network to the target's MAC address
