@@ -30,10 +30,10 @@ static bool eth_is_connected = false;
 static esp_eth_handle_t eth_handle;
 static uint8_t eth_mac[6]; 
 
-static void eth_event_handler(void *arg, )
+static void eth_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
     switch(event_id){
-        case ETH_EVENT_CONNECTED:
+        case ETHERNET_EVENT_CONNECTED:
             ESP_LOGI(TAG, "Ethernet link created");
             eth_is_connected = true;
             //retrieves the MAC @ from hardware and store it to 
@@ -97,7 +97,8 @@ int main()
     char *cmd_wol = "./sendwol A1:B4:C5:C1:DD:3E";
     char *msg1 = "\n Enter password: \n";
     char *msg2 = "\n correct, sending packet.. \n";
-    int listen_sock, len, new_sock ;
+    int listen_sock, new_sock;
+    socklen_t len;
     struct sockaddr_in servaddr, cliaddr, woladdr;
     bzero(&servaddr, sizeof(servaddr));
 

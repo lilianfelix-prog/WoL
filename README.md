@@ -19,3 +19,6 @@ The client is then prompted to enter a password, if correct the server create a 
 the coressponding MAC @. This enables all machines/servers on the same datalink layer (Layer 2) to remain in sleep mode or idle state while 
 maintaining network connectivity. The network interface card (NIC) typically draws only 1-5 watts of standby power to keep listening for 
 magic packets, providing significant energy savings compared to keeping systems fully powered.
+
+- Added a esp32 implementation using ESP-IDF over its Ethernet interface. It required initialising the PHY and MAC drivers and handle Ethernet events asynchronously which is how freeRTOS typically handles events.  
+
