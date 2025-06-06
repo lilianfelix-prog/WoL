@@ -84,7 +84,7 @@ static void initialize_ethernet(void)
 }
 
 
-int main()
+void main_loop(void)
 {   
     //system create a central freeRTOS task, task waiting on queue for "events".
     //in this case waiting for a ethernet driver to post "event" to the central queue.
@@ -105,7 +105,7 @@ int main()
     listen_sock = socket(AF_INET, SOCK_STREAM, 0); 
     if (listen_sock < 0) {
         perror("Socket creation failed");
-        exit(1);
+        return;
     }
 
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -115,14 +115,14 @@ int main()
     if (bind(listen_sock, (struct sockaddr*)&servaddr, sizeof(servaddr)) < 0) {
         perror("Bind failed");
         close(listen_sock);
-        exit(1);
+        return;
     }
     
     // Listen for connections
     if (listen(listen_sock, 5) < 0) {
         perror("Listen failed");
         close(listen_sock);
-        exit(1);
+        return;
     }
 
    
@@ -137,7 +137,7 @@ int main()
         printf("No data received or connection closed\n");
         close(new_sock);
         close(listen_sock);
-        exit(1);
+        return;
     }
     buffer[n] = '\0';
 
@@ -170,5 +170,5 @@ int main()
 
     close(listen_sock);
 
-    return 0;
+    
 }
