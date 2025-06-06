@@ -7,6 +7,65 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "wol.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+#include "esp_event.h"
+#include "esp_log.h"
+#include "esp_eth_driver.h"
+#include "driver/gpio.h"
+
+// CONFIG GPIO variables
+
+
+char* TAG = "eth";
+static bool eth_is_connected = false;
+
+static esp_eth_handle_t eth_handle;
+static uint8_t eth_mac[6]; 
+
+static void eth_event_handler(void *arg, )
+{
+    switch(event_id){
+        case ETH_EVENT_CONNECTED:
+            ESP_LOGI(TAG, "Ethernet link created");
+            eth_is_connected = true;
+            //retrieves the MAC @ from hardware and store it to 
+            esp_eth_ioctl(eth_handle, ETH_CMD_G_MAC_ADDR, eth_mac);
+            break;
+        case ETHERNET_EVENT_DISCONNECTED:
+            ESP_LOGI(TAG, "Ethernet link ended");
+            eth_is_connected = false;
+            break;
+        case ETHERNET_EVENT_START:
+            ESP_LOGI(TAG, "Ethernet started");
+            break;
+        case ETHERNET_EVENT_STOP:
+            ESP_LOGI(TAG, "Ethernet stoped");
+            break;
+    }
+}
+
+static void initialize_ethernet(void)
+{
+    //instead of polling events, the eth_event_handler is registered and the event loop task
+    //will call it when it see a eth_event type event 
+    esp_event_handler_register(ETH_EVENT, ESP_EVENT_ANY_ID, eth_event_handler, NULL);
+    
+    //Sets the address of the PHY on the MDIO bus.
+    eth_phy_config_t phy_config = ETH_PHY_DEFAULT_CONFIG();
+    phy_config.phy_addr = CONFIG_ETH_PHY_ADDR;
+    phy_config.reset_gpio_num = CONFIG_ETH_PHY_ENABLE_GPIO;
+
+    //set the GPIO pins for the MDC and MDIO of PHY chip, how MAC configure and monitor PHY
+    eth_mac_config_t mac_config = ETH_MAC_DEFAULT_CONFIG();
+    eth_esp32_emac_config_t esp32_emac_config = ETH_ESP32_EMAC_DEFAULT_CONFIG();
+    esp32_emac_config.smi_mdc_gpio_num = CONFIG_ETH_MDC_GPIO;
+    esp32_emac_config.smi_mdio_gpio_num = CONFIG_ETH_MDIO_GPIO;
+
+}
+
+
 
 // Configure and connect ethernet driver for a esp32 on esp-idf rtos, 
 // the esp32 would act as the server listening for incoming tcp over Ethernet
@@ -82,6 +141,13 @@
 
 int main()
 {   
+    //system create a central freeRTOS task, task waiting on queue for "events".
+    //in this case waiting for a ethernet driver to post "event" to the central queue.
+    //ex: ETHERNET_EVENT_CONNECTED event when it detects a physical link 
+    esp_event_loop_create_default();
+    initialize_flow_control();
+    initialize_ethernet();
+
     char buffer[100] = {0};
     char *password = "12345";
     char *cmd_wol = "./sendwol A1:B4:C5:C1:DD:3E";
