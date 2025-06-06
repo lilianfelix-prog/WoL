@@ -15,7 +15,13 @@
 #include "esp_eth_driver.h"
 #include "driver/gpio.h"
 
-// CONFIG GPIO variables
+// CONFIG GPIO pins
+#define CONFIG_ETH_MDC_GPIO 23
+#define CONFIG_ETH_MDIO_GPIO 18
+#define CONFIG_ETH_PHY_ENABLE_GPIO 5
+//auto detect
+#define CONFIG_ETH_PHY_ADDR -1
+
 
 
 char* TAG = "eth";
@@ -63,81 +69,20 @@ static void initialize_ethernet(void)
     esp32_emac_config.smi_mdc_gpio_num = CONFIG_ETH_MDC_GPIO;
     esp32_emac_config.smi_mdio_gpio_num = CONFIG_ETH_MDIO_GPIO;
 
+    //instantiates the driver for the built in ESP32 MAC
+    esp_eth_mac_t *mac = esp_eth_mac_new_esp32(&esp32_emac_config, &mac_config);
+    //instantiates the driver for a LAN87xx phy chip
+    esp_eth_phy_t *phy = esp_eth_phy_new_lan87xx(&phy_config);
+
+    //conbine driver configs 
+    esp_eth_config_t config = ETH_DEFAULT_CONFIG(mac, phy);
+    //allocate memory for transmit/receive buffers and initialise hardware based on configs
+    esp_eth_driver_install(&config, &eth_handle);
+
+    //hardware on idle until started, the interface can start receiving/transmitting
+    esp_eth_start(eth_handle);
 }
 
-
-
-// Configure and connect ethernet driver for a esp32 on esp-idf rtos, 
-// the esp32 would act as the server listening for incoming tcp over Ethernet
-// and distribute the WoL Magic Packet.
-// This config code is inspired by the exemple from docs.
-// /*
-//  * SPDX-FileCopyrightText: 2019-2025 Espressif Systems (Shanghai) CO LTD
-//  *
-//  * SPDX-License-Identifier: Apache-2.0
-//  */
-// //*******************installing the Ethernet driver**********************//
-// /** Event handler for Ethernet events */
-// static void eth_event_handler(void *arg, esp_event_base_t event_base,
-//                               int32_t event_id, void *event_data)
-// {
-//     uint8_t mac_addr[6] = {0};
-//     /* we can get the ethernet driver handle from event data */
-//     esp_eth_handle_t eth_handle = *(esp_eth_handle_t *)event_data;
-
-//     switch (event_id)
-//     {
-//     case ETHERNET_EVENT_CONNECTED:
-//         esp_eth_ioctl(eth_handle, ETH_CMD_G_MAC_ADDR, mac_addr);
-//         ESP_LOGI(TAG, "Ethernet Link Up");
-//         ESP_LOGI(TAG, "Ethernet HW Addr %02x:%02x:%02x:%02x:%02x:%02x",
-//                  mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
-//         break;
-//     case ETHERNET_EVENT_DISCONNECTED:
-//         ESP_LOGI(TAG, "Ethernet Link Down");
-//         break;
-//     case ETHERNET_EVENT_START:
-//         ESP_LOGI(TAG, "Ethernet Started");
-//         break;
-//     case ETHERNET_EVENT_STOP:
-//         ESP_LOGI(TAG, "Ethernet Stopped");
-//         break;
-//     default:
-//         break;
-//     }
-// }
-
-// // create a default event loop that runs in the background
-// esp_event_loop_create_default();
-
-// // register Ethernet event handler (to deal with user-specific stuff when events like link up/down happened)
-// esp_event_handler_register(ETH_EVENT, ESP_EVENT_ANY_ID, &eth_event_handler, NULL);
-
-// esp_eth_start(eth_handle); // start Ethernet driver state machine
-
-// //***************connect the Ethernet driver**********************//
-// /** Event handler for IP_EVENT_ETH_GOT_IP */
-// static void got_ip_event_handler(void *arg, esp_event_base_t event_base,
-//                                  int32_t event_id, void *event_data)
-// {
-//     ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
-//     const esp_netif_ip_info_t *ip_info = &event->ip_info;
-
-//     ESP_LOGI(TAG, "Ethernet Got IP Address");
-//     ESP_LOGI(TAG, "~~~~~~~~~~~");
-//     ESP_LOGI(TAG, "ETHIP:" IPSTR, IP2STR(&ip_info->ip));
-//     ESP_LOGI(TAG, "ETHMASK:" IPSTR, IP2STR(&ip_info->netmask));
-//     ESP_LOGI(TAG, "ETHGW:" IPSTR, IP2STR(&ip_info->gw));
-//     ESP_LOGI(TAG, "~~~~~~~~~~~");
-// }
-
-// esp_netif_init()); // Initialize TCP/IP network interface (should be called only once in application)
-// esp_netif_config_t cfg = ESP_NETIF_DEFAULT_ETH(); // apply default network interface configuration for Ethernet
-// esp_netif_t *eth_netif = esp_netif_new(&cfg);     // create network interface for Ethernet driver
-
-// esp_netif_attach(eth_netif, esp_eth_new_netif_glue(eth_handle));                        // attach Ethernet driver to TCP/IP stack
-// esp_event_handler_register(IP_EVENT, IP_EVENT_ETH_GOT_IP, &got_ip_event_handler, NULL); // register user defined IP event handlers
-// esp_eth_start(eth_handle);                                                              // start Ethernet driver state machine
 
 int main()
 {   
@@ -145,7 +90,6 @@ int main()
     //in this case waiting for a ethernet driver to post "event" to the central queue.
     //ex: ETHERNET_EVENT_CONNECTED event when it detects a physical link 
     esp_event_loop_create_default();
-    initialize_flow_control();
     initialize_ethernet();
 
     char buffer[100] = {0};
