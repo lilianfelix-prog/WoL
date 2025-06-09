@@ -20,8 +20,7 @@
 #define CONFIG_ETH_MDIO_GPIO 18
 #define CONFIG_ETH_PHY_ENABLE_GPIO 5
 //auto detect
-#define CONFIG_ETH_PHY_ADDR -1
-
+#define CONFIG_ETH_PHY_ADDR -1                      
 
 
 char* TAG = "eth";
@@ -84,7 +83,7 @@ static void initialize_ethernet(void)
 }
 
 
-void main_loop(void)
+void main_loop()
 {   
     //system create a central freeRTOS task, task waiting on queue for "events".
     //in this case waiting for a ethernet driver to post "event" to the central queue.
@@ -124,7 +123,6 @@ void main_loop(void)
         close(listen_sock);
         return;
     }
-
    
     len = sizeof(cliaddr);
 
@@ -152,7 +150,6 @@ void main_loop(void)
             
         send(new_sock, msg2, strlen(msg2), 0);
         
-        //
         int ret = system(cmd_wol);
         if (ret == -1) {
             char* err_sys = "system() failed\n";
@@ -167,8 +164,5 @@ void main_loop(void)
     }
 
     close(new_sock);
-
     close(listen_sock);
-
-    
 }
